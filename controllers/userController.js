@@ -80,7 +80,7 @@ const userDetails = async(req,res) => {
         if(users){
             res.json({"users":users});
         }
-    
+
     });
     
 

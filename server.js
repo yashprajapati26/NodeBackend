@@ -53,16 +53,16 @@ app.get('/', (req,res) => {
 
 // just create for upload book with image but didn't work properly
 
-app.post('/api/upload_book', async(req,res) => {
-    // file = req.file;
-    // console.log("file-->",file);
-    // console.log("body--->",req.body);
+app.post('/api/upload_book', upload.single("file") , async(req,res) => {
+    file = req.file;
+    console.log(file)
     const title = req.body.title;
     const price = req.body.price;
     const description = req.body.description;
+    const book_image = file.path;
 
-    // console.log(email, password);
-    body = req.body;
+    console.log("----------------------------------------------------");
+    body = {'title':title,'price':price,'description':description,'book_image':book_image}
     if(body){
         let sql = "INSERT INTO books SET ?";
         
@@ -76,8 +76,6 @@ app.post('/api/upload_book', async(req,res) => {
 
 app.use('/api',userRoutes)
  
-
-
 const port = process.env.PORT
 app.listen(port, 
 ()=> console.log(`Server Started on port ${port}...`));

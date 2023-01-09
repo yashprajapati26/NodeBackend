@@ -17,6 +17,7 @@ const signupUser = async(req,res) =>{
     let sql = "INSERT INTO users SET ?";
     let query = db.query(sql,body,(err,rows)=>{
         if(err) throw res.json(err);
+        
         res.json({"msg":"insert data sucessfully"});
     });
     
@@ -31,10 +32,6 @@ const loginUser = async(req,res)=>{
     let sql = `SELECT * FROM users WHERE email = "${email}"`;
     let user_obj;
 
-    
-    // const token = jwt.sign(email, jwtSecretKey);
-    // console.log(token);
-
     db.query(sql, async(err, rows) => {
         if(err) throw err;
         console.log(rows);
@@ -45,8 +42,20 @@ const loginUser = async(req,res)=>{
             // result = await bcrypt.compare(password, user_obj.password)
             // console.log("result : ",result)
             if(password == user_obj.password){
+
+                // generate token 
+                const token = jwt.sign(email, jwtSecretKey);
+                console.log("client toekn :",token);
+
                 req.session.user = user_obj.email;
-                // req.cookie("Token",token);
+
+                //save into user cookie 
+                res.cookie("auth_token", token, {
+                    maxAge: 2629800000,
+                    httpOnly: true,
+                });
+
+                console.log(res.cookie)
                 res.json({"user_type":user_obj.user_type,"msg":"Login Sucessfully"});
             }
             else{
@@ -58,6 +67,23 @@ const loginUser = async(req,res)=>{
         }
     })
 
+}
+
+const authenticateToekn = async(req, res, next) => {
+   
+    const token = req.cookies.auth_token
+    
+    console.log("111111111111",token)
+
+    // const token = authHeader && authHeader.split(' ')[1]  // token place on 2nd position
+
+    if(token==null) return res.sendStatus(401)
+
+    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err, res) =>{
+        if(err) return res.sendStatus(403)
+        req.user = res
+        next()
+    })
 }
 
 const logoutUser = async (req, res) => {
@@ -86,4 +112,4 @@ const userDetails = async(req,res) => {
 
 }
 
-module.exports = {signupUser,loginUser,logoutUser,userDetails}
+module.exports = {signupUser,loginUser,logoutUser,userDetails,authenticateToekn}
